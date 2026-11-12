@@ -1,0 +1,2 @@
+# Add one agreed Gemini SDK and test dependencies after the team confirms versions.
+
