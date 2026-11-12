@@ -12,9 +12,8 @@ Build and validate the quiz domain models, define the AI-provider boundary, and 
 - `ai_quiz_generator/ai/gemini_provider.py`
 - `ai_quiz_generator/services/quiz_generator.py`
 - Model, provider, and generator tests
-- `tests/sample_quiz.json` as the shared development fixture
 
-Stina owns the implementation of `domain/quiz_result.py`. Coordinate its initial field skeleton with her, but do not change her implementation silently.
+Stina owns `domain/quiz_result.py`, the shared fixture, and cross-layer domain/session contract tests. Coordinate the initial model fields with her, but do not change her implementation silently.
 
 ## Work checklist
 
@@ -24,8 +23,8 @@ Stina owns the implementation of `domain/quiz_result.py`. Coordinate its initial
 - [ ] Agree on the team Python version and Gemini SDK dependency.
 - [ ] Add `Question` and `Quiz` class skeletons.
 - [ ] Coordinate the initial `QuizResult` skeleton with Stina.
-- [ ] Create `tests/sample_quiz.json` with exactly 10 complete questions and unique IDs.
-- [ ] Commit and push this shared starting point before feature work begins.
+- [ ] Review Stina's `tests/sample_quiz.json` and confirm that it satisfies `Question` and `Quiz` validation.
+- [ ] Review and publish the shared starting point with Stina before feature work begins.
 
 ### 2. Domain validation
 

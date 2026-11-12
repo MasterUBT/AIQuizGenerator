@@ -44,7 +44,7 @@ AIQuizGenerator/
 │       ├── __init__.py
 │       └── terminal_ui.py              # Flutura
 ├── tests/
-│   └── sample_quiz.json                # Valmira creates shared 10-question fixture
+│   └── sample_quiz.json                # Stina owns shared 10-question fixture
 └── team/
     ├── valmira/README.md
     ├── stina/README.md
@@ -104,8 +104,8 @@ QuizExporter.export_wrong_answers(
 ## Parallel-work kickoff
 
 1. All three members confirm the architecture, contracts, and one shared Python version.
-2. Valmira adds the `Question` and `Quiz` skeletons, coordinates the initial `QuizResult` shape with Stina, and creates `tests/sample_quiz.json` with exactly 10 complete questions.
-3. Valmira pushes the shared starting commit. Everyone pulls it, installs the same dependencies, and verifies that the fixture can be loaded.
+2. Valmira adds the `Question` and `Quiz` skeletons. Stina implements the agreed initial `QuizResult` shape and creates `tests/sample_quiz.json` with exactly 10 complete questions.
+3. Valmira and Stina review the shared models and fixture together, then publish the shared starting commit. Everyone pulls it, installs the same dependencies, and verifies that the fixture can be loaded.
 4. Work continues in parallel:
    - Valmira builds the provider and generator on `feature/ai-generator`.
    - Stina builds the session and grading engine on `feature/quiz-engine`.
@@ -113,6 +113,8 @@ QuizExporter.export_wrong_answers(
 5. Flutura initially uses a fake provider or fixture. During integration, `main.py` is switched to `GeminiProvider`, and all end-to-end tests are run.
 
 Each person should edit owned files whenever possible. Cross-owner changes should be discussed first, especially changes to model fields or public method signatures.
+
+To balance the workload, Stina also owns the shared fixture and the automated contract tests covering the domain models and quiz-session boundary. Valmira tests provider and generator behavior; Flutura tests the CLI, file operations, and end-to-end assembly.
 
 ## Definition of done
 

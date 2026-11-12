@@ -9,6 +9,8 @@ Build reusable quiz-session state and deterministic grading. The engine receives
 - `ai_quiz_generator/domain/quiz_result.py`
 - `ai_quiz_generator/services/quiz_session.py`
 - `ai_quiz_generator/services/scoring.py` if separate scoring improves clarity
+- `tests/sample_quiz.json` as the shared 10-question development fixture
+- Shared domain/session contract tests
 - Quiz-session, validation, and scoring tests
 
 Valmira owns `Question` and `Quiz`. Import and use those models without changing their public fields unless the whole team agrees.
@@ -19,7 +21,9 @@ Valmira owns `Question` and `Quiz`. Import and use those models without changing
 
 - [ ] Confirm `Question`, `Quiz`, and `QuizResult` fields and all public methods with Valmira and Flutura.
 - [ ] Review the initial `QuizResult` skeleton with Valmira, then take ownership of its implementation.
-- [ ] Pull and load the shared 10-question fixture before beginning engine work.
+- [ ] Create `tests/sample_quiz.json` with exactly 10 complete questions, unique IDs, and A–D options.
+- [ ] Verify with Valmira that the fixture satisfies the agreed `Question` and `Quiz` validations.
+- [ ] Review and publish the shared starting point with Valmira before feature work begins.
 
 ### 2. Result model and session state
 
@@ -49,6 +53,8 @@ Valmira owns `Question` and `Quiz`. Import and use those models without changing
 - [ ] Test incomplete and repeated `finish()` calls.
 - [ ] Test quizzes whose question IDs are valid but not sequential.
 - [ ] Verify the exact `QuizResult` fields using the shared fixture.
+- [ ] Add contract tests proving the shared fixture loads into the agreed domain models.
+- [ ] Add contract tests for the `Quiz` → `QuizSession` → `QuizResult` boundary.
 
 ## Integration contract
 
