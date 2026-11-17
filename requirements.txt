@@ -1,2 +1,3 @@
-# Add one agreed Gemini SDK and test dependencies after the team confirms versions.
+google-genai==2.34.0
+pytest==9.2.0
 
