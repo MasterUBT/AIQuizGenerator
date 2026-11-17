@@ -1,0 +1,75 @@
+{
+  "topic": "Python Basics",
+  "questions": [
+    {
+      "id": 1,
+      "text": "Which keyword defines a function in Python?",
+      "options": {"A": "func", "B": "def", "C": "function", "D": "lambda"},
+      "correct_answer": "B",
+      "explanation": "Named functions are defined with the def keyword."
+    },
+    {
+      "id": 2,
+      "text": "What is the type of the value 3.14?",
+      "options": {"A": "int", "B": "str", "C": "float", "D": "decimal"},
+      "correct_answer": "C",
+      "explanation": "Numeric literals with a decimal point are float values."
+    },
+    {
+      "id": 3,
+      "text": "Which collection type is immutable?",
+      "options": {"A": "list", "B": "dict", "C": "set", "D": "tuple"},
+      "correct_answer": "D",
+      "explanation": "Tuples cannot be changed after they are created."
+    },
+    {
+      "id": 4,
+      "text": "What does len([1, 2, 3]) return?",
+      "options": {"A": "3", "B": "2", "C": "6", "D": "An error"},
+      "correct_answer": "A",
+      "explanation": "len returns the number of items in the list, which is 3."
+    },
+    {
+      "id": 5,
+      "text": "Which operator performs integer (floor) division?",
+      "options": {"A": "/", "B": "//", "C": "%", "D": "**"},
+      "correct_answer": "B",
+      "explanation": "The // operator divides and rounds down to a whole number."
+    },
+    {
+      "id": 6,
+      "text": "How do you start a single-line comment?",
+      "options": {"A": "//", "B": "/*", "C": "#", "D": "--"},
+      "correct_answer": "C",
+      "explanation": "Python comments start with the # character."
+    },
+    {
+      "id": 7,
+      "text": "Which statement handles exceptions?",
+      "options": {"A": "try/except", "B": "catch/throw", "C": "if/else", "D": "do/while"},
+      "correct_answer": "A",
+      "explanation": "Python catches exceptions with try and except blocks."
+    },
+    {
+      "id": 8,
+      "text": "What is the result of bool('')?",
+      "options": {"A": "True", "B": "None", "C": "An error", "D": "False"},
+      "correct_answer": "D",
+      "explanation": "Empty strings are falsy, so bool('') is False."
+    },
+    {
+      "id": 9,
+      "text": "Which method adds an item to the end of a list?",
+      "options": {"A": "add", "B": "push", "C": "append", "D": "insert_end"},
+      "correct_answer": "C",
+      "explanation": "list.append adds a single item to the end of the list."
+    },
+    {
+      "id": 10,
+      "text": "What does range(3) produce when converted to a list?",
+      "options": {"A": "[1, 2, 3]", "B": "[0, 1, 2]", "C": "[0, 1, 2, 3]", "D": "[3]"},
+      "correct_answer": "B",
+      "explanation": "range(3) starts at 0 and stops before 3."
+    }
+  ]
+}
