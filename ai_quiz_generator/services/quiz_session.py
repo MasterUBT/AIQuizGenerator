@@ -5,7 +5,7 @@ from __future__ import annotations
 from ai_quiz_generator.domain.question import OPTION_KEYS
 from ai_quiz_generator.domain.quiz import Quiz
 from ai_quiz_generator.domain.quiz_result import QuizResult
-from ai_quiz_generator.services.scoring import grade
+from ai_quiz_generator.services.scoring import ExactMatchScorer, Scorer
 
 
 class QuizSessionError(ValueError):
@@ -37,12 +37,20 @@ class QuizSession:
 
     Choices are normalized by stripping whitespace and upper-casing, so " b "
     is accepted as "B". Anything else outside A-D is rejected.
+
+    Grading is delegated to a ``Scorer``; ``ExactMatchScorer`` is used when
+    none is given.
     """
 
-    def __init__(self, quiz: Quiz) -> None:
+    def __init__(self, quiz: Quiz, scorer: Scorer | None = None) -> None:
         if not isinstance(quiz, Quiz):
             raise TypeError("quiz must be a Quiz")
+        if scorer is None:
+            scorer = ExactMatchScorer()
+        if not isinstance(scorer, Scorer):
+            raise TypeError("scorer must be a Scorer")
         self._quiz = quiz
+        self._scorer = scorer
         self._question_ids = [question.id for question in quiz.questions]
         self._answers: dict[int, str] = {}
         self._result: QuizResult | None = None
@@ -84,7 +92,7 @@ class QuizSession:
                 f"questions not answered yet: {', '.join(map(str, unanswered))}"
             )
 
-        self._result = grade(self._quiz, self._answers)
+        self._result = self._scorer.grade(self._quiz, self._answers)
         return self._result
 
     @staticmethod

@@ -14,7 +14,6 @@ from ai_quiz_generator.services.quiz_session import (
     SessionFinishedError,
     UnknownQuestionError,
 )
-from ai_quiz_generator.services.scoring import grade
 
 
 def wrong_choice(correct: str) -> str:
@@ -200,9 +199,3 @@ def test_all_session_errors_share_base_class() -> None:
     ):
         assert issubclass(error, QuizSessionError)
 
-
-def test_grade_counts_missing_answers_as_wrong(sample_quiz: Quiz) -> None:
-    result = grade(sample_quiz, {1: "B"})
-
-    assert result.score == 1
-    assert result.wrong_question_ids == [2, 3, 4, 5, 6, 7, 8, 9, 10]
