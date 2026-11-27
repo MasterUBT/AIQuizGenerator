@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from typing import Any
 
-from ai_quiz_generator.ai.provider import AIProvider, AIProviderError
+from ai_quiz_generator.ai.provider import AIProvider, AIProviderError, AIProviderRequestError
 from ai_quiz_generator.domain.question import Question
 from ai_quiz_generator.domain.quiz import Quiz
 
@@ -39,6 +39,8 @@ class QuizGenerator:
 
         try:
             payload = self._provider.generate_quiz(source, mode)
+        except AIProviderRequestError as exc:
+            raise QuizGenerationError(str(exc)) from exc
         except AIProviderError as exc:
             raise QuizGenerationError("AI provider failed to generate a quiz") from exc
 
