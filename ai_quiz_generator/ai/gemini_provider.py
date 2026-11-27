@@ -6,9 +6,12 @@ import json
 from collections.abc import Mapping
 from typing import Any
 
+import httpx
+
 from ai_quiz_generator.ai.provider import (
     AIProviderConfigurationError,
     AIProviderError,
+    AIProviderRequestError,
     AIProviderResponseError,
 )
 
@@ -114,7 +117,7 @@ class GeminiProvider:
         except AIProviderError:
             raise
         except Exception as exc:
-            raise AIProviderError("Gemini could not generate the quiz") from exc
+            raise self._request_error(exc) from exc
 
         output_text = getattr(response, "output_text", None)
         if not isinstance(output_text, str) or not output_text.strip():
@@ -128,6 +131,35 @@ class GeminiProvider:
         if not isinstance(data, Mapping):
             raise AIProviderResponseError("Gemini response must be a JSON object")
         return data
+
+    @staticmethod
+    def _request_error(error: Exception) -> AIProviderRequestError:
+        """Translate SDK failures without displaying remote messages or credentials."""
+        status = getattr(error, "status_code", None) or getattr(error, "code", None)
+        messages = {
+            400: "Gemini rejected the request. Check the model and provider request settings.",
+            401: "Gemini rejected the API key. Check GEMINI_API_KEY in .env or your environment.",
+            403: "Gemini denied access. Check the key's project permissions and API restrictions.",
+            404: "The Gemini model was not found. Check GEMINI_MODEL or --model.",
+            429: "Gemini quota or rate limit reached. Check usage in Google AI Studio or try later.",
+        }
+        if status in messages:
+            return AIProviderRequestError(messages[status])
+        if isinstance(status, int) and status >= 500:
+            return AIProviderRequestError("Gemini is temporarily unavailable. Try again later.")
+
+        cause: BaseException | None = error
+        seen = set()
+        while cause is not None and id(cause) not in seen:
+            seen.add(id(cause))
+            if isinstance(cause, (TimeoutError, httpx.TimeoutException)):
+                return AIProviderRequestError("Gemini request timed out. Please try again later.")
+            if isinstance(cause, (ConnectionError, httpx.ConnectError)):
+                return AIProviderRequestError(
+                    "Could not connect to Gemini. Check your internet connection."
+                )
+            cause = cause.__cause__ or cause.__context__
+        return AIProviderRequestError("Gemini could not generate the quiz.")
 
     @staticmethod
     def _create_client() -> Any:

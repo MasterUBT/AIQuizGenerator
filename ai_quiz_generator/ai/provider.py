@@ -9,6 +9,9 @@ from typing import Any, Protocol
 class AIProviderError(RuntimeError):
     """Raised when an AI provider cannot return usable quiz data."""
 
+class AIProviderRequestError(AIProviderError):
+    """A request failure with a sanitized message suitable for the user."""
+
 
 class AIProviderConfigurationError(AIProviderError):
     """Raised when an AI provider is not configured correctly."""

@@ -70,6 +70,16 @@ def test_generate_wraps_provider_failure() -> None:
     with pytest.raises(QuizGenerationError, match="provider failed"):
         QuizGenerator(FailingProvider()).generate("Python", "topic")
 
+def test_sanitized_request_error_reaches_the_caller() -> None:
+    from ai_quiz_generator.ai.provider import AIProviderRequestError
+
+    class RejectedProvider:
+        def generate_quiz(self, source: str, mode: str) -> Mapping[str, Any]:
+            raise AIProviderRequestError("Gemini rejected the API key.")
+
+    with pytest.raises(QuizGenerationError, match="Gemini rejected the API key"):
+        QuizGenerator(RejectedProvider()).generate("Python", "topic")
+
 
 @pytest.mark.parametrize(
     "payload",

@@ -11,6 +11,7 @@ from ai_quiz_generator.ai.gemini_provider import (
 from ai_quiz_generator.ai.provider import (
     AIProviderConfigurationError,
     AIProviderError,
+    AIProviderRequestError,
     AIProviderResponseError,
 )
 
@@ -122,7 +123,7 @@ def test_gemini_provider_rejects_non_object_json() -> None:
 def test_gemini_provider_wraps_sdk_error() -> None:
     client = make_client(RecordingInteractions(error=TimeoutError("too slow")))
 
-    with pytest.raises(AIProviderError, match="could not generate"):
+    with pytest.raises(AIProviderRequestError, match="timed out"):
         GeminiProvider(client=client).generate_quiz("Python", "topic")
 
 
@@ -142,3 +143,77 @@ def test_gemini_provider_rejects_invalid_mode() -> None:
         GeminiProvider(client=make_client(RecordingInteractions())).generate_quiz(
             "Python", "file"
         )
+
+class SDKStatusError(Exception):
+    def __init__(self, status: int) -> None:
+        super().__init__("remote error including secret-key and private request data")
+        self.status_code = status
+
+
+@pytest.mark.parametrize(
+    ("status", "message"),
+    [
+        (400, "rejected the request"),
+        (401, "rejected the API key"),
+        (403, "denied access"),
+        (404, "model was not found"),
+        (429, "quota or rate limit"),
+        (503, "temporarily unavailable"),
+        (418, "could not generate"),
+    ],
+)
+def test_sdk_status_errors_have_safe_actionable_messages(
+    status: int, message: str
+) -> None:
+    error = SDKStatusError(status)
+    client = make_client(RecordingInteractions(error=error))
+
+    with pytest.raises(AIProviderRequestError, match=message) as caught:
+        GeminiProvider(client=client).generate_quiz("Python", "topic")
+
+    assert caught.value.__cause__ is error
+    assert "secret-key" not in str(caught.value)
+    assert "private request data" not in str(caught.value)
+
+
+def test_public_sdk_error_code_is_translated() -> None:
+    from google.genai.errors import ClientError
+
+    error = ClientError(401, {"error": {"message": "invalid secret-key"}})
+    client = make_client(RecordingInteractions(error=error))
+
+    with pytest.raises(AIProviderRequestError, match="rejected the API key") as caught:
+        GeminiProvider(client=client).generate_quiz("Python", "topic")
+
+    assert "secret-key" not in str(caught.value)
+
+
+def test_wrapped_network_timeout_is_translated() -> None:
+    import httpx
+
+    error = RuntimeError("SDK wrapper with private request data")
+    error.__cause__ = httpx.ReadTimeout("secret-key")
+    client = make_client(RecordingInteractions(error=error))
+
+    with pytest.raises(AIProviderRequestError, match="timed out") as caught:
+        GeminiProvider(client=client).generate_quiz("Python", "topic")
+
+    assert "secret-key" not in str(caught.value)
+
+
+def test_network_connection_error_is_translated() -> None:
+    import httpx
+
+    client = make_client(RecordingInteractions(error=httpx.ConnectError("secret-key")))
+
+    with pytest.raises(AIProviderRequestError, match="internet connection"):
+        GeminiProvider(client=client).generate_quiz("Python", "topic")
+
+
+def test_unexpected_sdk_error_does_not_expose_details() -> None:
+    client = make_client(RecordingInteractions(error=RuntimeError("secret-key")))
+
+    with pytest.raises(AIProviderRequestError) as caught:
+        GeminiProvider(client=client).generate_quiz("Python", "topic")
+
+    assert str(caught.value) == "Gemini could not generate the quiz."
