@@ -6,7 +6,6 @@ from dataclasses import dataclass
 
 from ai_quiz_generator.domain.question import Question
 
-
 QUESTION_COUNT = 10
 
 
@@ -21,7 +20,7 @@ class Quiz:
         if not isinstance(self.topic, str) or not self.topic.strip():
             raise ValueError("quiz topic must be a nonempty string")
         if not isinstance(self.questions, list):
-            raise ValueError("quiz questions must be a list")
+            raise TypeError("quiz questions must be a list")
         if len(self.questions) != QUESTION_COUNT:
             raise ValueError(f"quiz must contain exactly {QUESTION_COUNT} questions")
         if any(not isinstance(question, Question) for question in self.questions):

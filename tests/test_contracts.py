@@ -11,7 +11,6 @@ from ai_quiz_generator.domain.quiz_result import QuizResult
 from ai_quiz_generator.services.quiz_generator import QuizGenerator
 from ai_quiz_generator.services.quiz_session import QuizSession
 
-
 PACKAGE_DIR = Path(__file__).resolve().parents[1] / "ai_quiz_generator"
 
 

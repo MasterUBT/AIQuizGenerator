@@ -3,18 +3,18 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
-from typing import Any
 
-from ai_quiz_generator.ai.provider import AIProvider, AIProviderError, AIProviderRequestError
+from ai_quiz_generator.ai.provider import (
+    AIProvider,
+    AIProviderError,
+    AIProviderRequestError,
+)
 from ai_quiz_generator.domain.question import Question
 from ai_quiz_generator.domain.quiz import Quiz
 
-
 SUPPORTED_MODES = frozenset({"topic", "lecture"})
 QUIZ_FIELDS = frozenset({"topic", "questions"})
-QUESTION_FIELDS = frozenset(
-    {"id", "text", "options", "correct_answer", "explanation"}
-)
+QUESTION_FIELDS = frozenset({"id", "text", "options", "correct_answer", "explanation"})
 
 
 class QuizGenerationError(RuntimeError):
@@ -47,7 +47,9 @@ class QuizGenerator:
         try:
             return self._parse_quiz(payload)
         except (TypeError, ValueError, KeyError) as exc:
-            raise QuizGenerationError(f"AI provider returned invalid quiz data: {exc}") from exc
+            raise QuizGenerationError(
+                f"AI provider returned invalid quiz data: {exc}"
+            ) from exc
 
     @staticmethod
     def _validate_source(source: object) -> str:
@@ -92,4 +94,3 @@ class QuizGenerator:
             correct_answer=payload["correct_answer"],
             explanation=payload["explanation"],
         )
-

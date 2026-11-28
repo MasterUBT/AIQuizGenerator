@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Generate and take a ten-question quiz with Gemini.">
+    <title>{% block title %}AI Quiz Generator{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='app.js') }}" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="{{ url_for('index') }}" aria-label="AI Quiz Generator home">
+        <span class="brand-mark" aria-hidden="true">Q</span>
+        <span>
+          <strong>AI Quiz Generator</strong>
+          <small>Local browser edition</small>
+        </span>
+      </a>
+      <div class="status-chip">
+        <span class="status-dot" aria-hidden="true"></span>
+        Gemini connected server-side
+      </div>
+    </header>
+
+    <main class="page-shell">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-stack" aria-live="polite">
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <span>Runs on your computer</span>
+      <span>Your API key never enters the browser</span>
+    </footer>
+
+    <div class="loading-overlay" data-loading-overlay hidden aria-live="assertive">
+      <div class="loading-card">
+        <span class="spinner" aria-hidden="true"></span>
+        <strong>Generating your quiz</strong>
+        <p>Gemini is preparing ten validated questions. A fallback model will be tried automatically if needed.</p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -2,7 +2,10 @@ from pathlib import Path
 
 import pytest
 
-from ai_quiz_generator.infrastructure.input_reader import LectureInputError, read_lecture_file
+from ai_quiz_generator.infrastructure.input_reader import (
+    LectureInputError,
+    read_lecture_file,
+)
 
 
 def test_reads_utf8_lecture_content(tmp_path: Path) -> None:

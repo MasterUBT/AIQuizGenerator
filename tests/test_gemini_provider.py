@@ -10,7 +10,6 @@ from ai_quiz_generator.ai.gemini_provider import (
 )
 from ai_quiz_generator.ai.provider import (
     AIProviderConfigurationError,
-    AIProviderError,
     AIProviderRequestError,
     AIProviderResponseError,
 )
@@ -143,6 +142,7 @@ def test_gemini_provider_rejects_invalid_mode() -> None:
         GeminiProvider(client=make_client(RecordingInteractions())).generate_quiz(
             "Python", "file"
         )
+
 
 class SDKStatusError(Exception):
     def __init__(self, status: int) -> None:
