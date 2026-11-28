@@ -24,14 +24,14 @@ class QuizResult:
             raise ValueError("result score must be an integer between 0 and total")
 
         if not isinstance(self.answers, Mapping):
-            raise ValueError("result answers must be a mapping")
+            raise TypeError("result answers must be a mapping")
         if any(not _is_int(key) for key in self.answers):
             raise ValueError("result answer keys must be integer question ids")
         if any(value not in OPTION_KEYS for value in self.answers.values()):
             raise ValueError("result answers must be one of A, B, C, or D")
 
         if not isinstance(self.wrong_question_ids, list):
-            raise ValueError("wrong question ids must be a list")
+            raise TypeError("wrong question ids must be a list")
         if any(not _is_int(question_id) for question_id in self.wrong_question_ids):
             raise ValueError("wrong question ids must be integers")
         if len(self.wrong_question_ids) != len(set(self.wrong_question_ids)):

@@ -7,7 +7,6 @@ import pytest
 from ai_quiz_generator.domain.question import Question
 from ai_quiz_generator.domain.quiz import Quiz
 
-
 SAMPLE_QUIZ_PATH = Path(__file__).with_name("sample_quiz.json")
 
 

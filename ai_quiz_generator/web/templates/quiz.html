@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz.topic }} · AI Quiz Generator{% endblock %}
+
+{% block content %}
+  <section class="quiz-heading">
+    <div>
+      <a class="text-link" href="{{ url_for('index') }}">Start a different quiz</a>
+      <span class="eyebrow">10-question quiz</span>
+      <h1>{{ quiz.topic }}</h1>
+      <p>Choose one answer for every question, then submit for immediate feedback.</p>
+    </div>
+    <div class="progress-card">
+      <strong><span data-answered-count>0</span>/{{ quiz.questions|length }}</strong>
+      <small>answered</small>
+      <div class="progress-track"><span data-progress-bar></span></div>
+    </div>
+  </section>
+
+  {% if error %}
+    <div class="alert alert-error" role="alert">{{ error }}</div>
+  {% endif %}
+
+  <form action="{{ url_for('submit_quiz', token=token) }}" method="post" class="quiz-form" data-quiz-form>
+    {% for question in quiz.questions %}
+      <fieldset class="question-card">
+        <legend class="sr-only">Question {{ loop.index }} of {{ quiz.questions|length }}: {{ question.text }}</legend>
+        <div class="question-heading">
+          <span>Question {{ loop.index }} of {{ quiz.questions|length }}</span>
+          <h2 class="question-title">{{ question.text }}</h2>
+        </div>
+        <div class="answer-grid">
+          {% for letter in ['A', 'B', 'C', 'D'] %}
+            <label class="answer-option">
+              <input type="radio" name="question_{{ question.id }}" value="{{ letter }}" {% if selections.get(question.id) == letter %}checked{% endif %}>
+              <span class="answer-letter">{{ letter }}</span>
+              <span>{{ question.options[letter] }}</span>
+            </label>
+          {% endfor %}
+        </div>
+      </fieldset>
+    {% endfor %}
+
+    <div class="submit-bar">
+      <div><strong>Ready to see your result?</strong><small>All ten questions must be answered.</small></div>
+      <button class="button button-primary" type="submit">Submit answers</button>
+    </div>
+  </form>
+{% endblock %}

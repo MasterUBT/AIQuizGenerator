@@ -13,26 +13,27 @@ class QuizExportError(ValueError):
 class QuizExporter:
     """Write quiz reviews without overwriting existing files."""
 
-    def export_wrong_answers(
-        self, quiz: Quiz, result: QuizResult, path: str
-    ) -> None:
+    def export_wrong_answers(self, quiz: Quiz, result: QuizResult, path: str) -> None:
         output_path = Path(path).expanduser()
         if output_path.suffix.lower() not in {".md", ".txt"}:
             raise QuizExportError("Choose an export path ending in .md or .txt.")
 
-        content = self._render(quiz, result)
+        content = self.render_wrong_answers(quiz, result)
         try:
             with output_path.open("x", encoding="utf-8") as output:
                 output.write(content)
         except FileExistsError as exc:
-            raise QuizExportError("That file already exists. Choose another path.") from exc
+            raise QuizExportError(
+                "That file already exists. Choose another path."
+            ) from exc
         except (OSError, UnicodeError, ValueError) as exc:
             raise QuizExportError(
                 f"Could not write review to {output_path}. Check the folder and permissions."
             ) from exc
 
     @staticmethod
-    def _render(quiz: Quiz, result: QuizResult) -> str:
+    def render_wrong_answers(quiz: Quiz, result: QuizResult) -> str:
+        """Return the same review content used by file exports."""
         question_ids = {question.id for question in quiz.questions}
         wrong_ids = set(result.wrong_question_ids)
         if (
@@ -58,15 +59,17 @@ class QuizExporter:
             if selected not in question.options:
                 raise QuizExportError("The result contains an invalid answer.")
             correct = question.correct_answer
-            lines.extend([
-                f"## Question {question.id}",
-                "",
-                question.text,
-                "",
-                f"**Your answer:** {selected} — {question.options[selected]}",
-                f"**Correct answer:** {correct} — {question.options[correct]}",
-                "",
-                f"**Explanation:** {question.explanation}",
-                "",
-            ])
+            lines.extend(
+                [
+                    f"## Question {question.id}",
+                    "",
+                    question.text,
+                    "",
+                    f"**Your answer:** {selected} — {question.options[selected]}",
+                    f"**Correct answer:** {correct} — {question.options[correct]}",
+                    "",
+                    f"**Explanation:** {question.explanation}",
+                    "",
+                ]
+            )
         return "\n".join(lines).rstrip() + "\n"

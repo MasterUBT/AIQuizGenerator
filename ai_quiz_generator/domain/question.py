@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import Mapping
 from dataclasses import dataclass
 
-
 OPTION_KEYS = frozenset({"A", "B", "C", "D"})
 
 
@@ -27,7 +26,7 @@ class Question:
         explanation = _nonempty_string(self.explanation, "question explanation")
 
         if not isinstance(self.options, Mapping):
-            raise ValueError("question options must be a mapping")
+            raise TypeError("question options must be a mapping")
         if set(self.options) != OPTION_KEYS:
             raise ValueError("question options must contain exactly A, B, C, and D")
 

@@ -3,18 +3,20 @@ VENV := .venv
 VENV_PYTHON := $(VENV)/bin/python
 DEPENDENCY_STAMP := $(VENV)/.requirements-installed
 
-.PHONY: help setup install run practice test test-domain test-generator test-gemini test-cli
+.PHONY: help setup install run web practice test test-domain test-generator test-gemini test-cli test-web
 
 help:
 	@echo "Development commands:"
 	@echo "  make setup           Create .venv and install dependencies"
 	@echo "  make run             Generate a quiz with Gemini"
+	@echo "  make web             Start the local browser interface"
 	@echo "  make practice        Start the offline sample quiz"
 	@echo "  make test            Run all tests"
 	@echo "  make test-domain     Run Question and Quiz model tests"
 	@echo "  make test-generator  Run QuizGenerator tests"
 	@echo "  make test-gemini     Run mocked Gemini provider tests"
 	@echo "  make test-cli        Run terminal, file, export, and startup tests"
+	@echo "  make test-web        Run browser interface tests"
 
 setup: $(DEPENDENCY_STAMP)
 
@@ -29,6 +31,9 @@ $(DEPENDENCY_STAMP): requirements.txt | $(VENV_PYTHON)
 
 run: $(DEPENDENCY_STAMP)
 	$(VENV_PYTHON) -m ai_quiz_generator.main
+
+web: $(DEPENDENCY_STAMP)
+	$(VENV_PYTHON) -m ai_quiz_generator.web
 
 practice: $(DEPENDENCY_STAMP)
 	$(VENV_PYTHON) -m ai_quiz_generator.main --practice
@@ -47,3 +52,6 @@ test-gemini: $(DEPENDENCY_STAMP)
 
 test-cli: $(DEPENDENCY_STAMP)
 	$(VENV_PYTHON) -m pytest tests/test_terminal_ui.py tests/test_input_reader.py tests/test_quiz_exporter.py tests/test_main.py -q
+
+test-web: $(DEPENDENCY_STAMP)
+	$(VENV_PYTHON) -m pytest tests/test_web_app.py -q

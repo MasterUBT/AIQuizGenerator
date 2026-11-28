@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Create a quiz · AI Quiz Generator{% endblock %}
+
+{% block content %}
+  <section class="hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">AI-powered study tool</span>
+      <h1>Turn any topic or lecture into a focused quiz.</h1>
+      <p>Choose a source, let Gemini create ten multiple-choice questions, and get immediate scoring with explanations.</p>
+      <div class="hero-points" aria-label="Key features">
+        <span>10 validated questions</span>
+        <span>Automatic model fallback</span>
+        <span>Downloadable review</span>
+      </div>
+    </div>
+
+    <aside class="process-card">
+      <span class="card-kicker">How it works</span>
+      <ol>
+        <li><span>1</span><div><strong>Add your material</strong><small>Topic, pasted notes, or a text file</small></div></li>
+        <li><span>2</span><div><strong>Take the quiz</strong><small>Answer ten A–D questions</small></div></li>
+        <li><span>3</span><div><strong>Review the result</strong><small>See corrections and explanations</small></div></li>
+      </ol>
+    </aside>
+  </section>
+
+  <section class="generator-card" aria-labelledby="generator-title">
+    <div class="section-heading">
+      <div>
+        <span class="card-kicker">Create your quiz</span>
+        <h2 id="generator-title">What should the questions cover?</h2>
+      </div>
+      <span class="privacy-note">Processed server-side</span>
+    </div>
+
+    {% if error %}
+      <div class="alert alert-error" role="alert">{{ error }}</div>
+    {% endif %}
+
+    {% set values = form_values|default({}) %}
+    <form action="{{ url_for('generate_quiz') }}" method="post" enctype="multipart/form-data" data-generation-form>
+      <fieldset class="mode-selector">
+        <legend class="sr-only">Choose quiz source</legend>
+        <label class="mode-option">
+          <input type="radio" name="mode" value="topic" {% if selected_mode == 'topic' %}checked{% endif %}>
+          <span><strong>Topic</strong><small>Start from a short subject</small></span>
+        </label>
+        <label class="mode-option">
+          <input type="radio" name="mode" value="lecture" {% if selected_mode == 'lecture' %}checked{% endif %}>
+          <span><strong>Paste lecture</strong><small>Use notes or course material</small></span>
+        </label>
+        <label class="mode-option">
+          <input type="radio" name="mode" value="file" {% if selected_mode == 'file' %}checked{% endif %}>
+          <span><strong>Text file</strong><small>Upload a UTF-8 .txt file</small></span>
+        </label>
+      </fieldset>
+
+      <div class="source-panels">
+        <div class="source-panel" data-source-panel="topic">
+          <label for="topic">Quiz topic</label>
+          <input id="topic" name="topic" type="text" maxlength="300" value="{{ values.get('topic', '') }}" placeholder="For example: Python object-oriented programming">
+          <small>Keep it clear and specific for stronger questions.</small>
+        </div>
+
+        <div class="source-panel" data-source-panel="lecture" hidden>
+          <label for="lecture">Lecture content</label>
+          <textarea id="lecture" name="lecture" rows="10" maxlength="100000" placeholder="Paste lecture notes here…">{{ values.get('lecture', '') }}</textarea>
+          <small>Up to 100,000 characters. The quiz will use only this material.</small>
+        </div>
+
+        <div class="source-panel" data-source-panel="file" hidden>
+          <label class="file-drop" for="lecture-file">
+            <span class="file-icon" aria-hidden="true">TXT</span>
+            <strong>Choose a lecture file</strong>
+            <small data-file-name>UTF-8 .txt, up to 1 MB</small>
+          </label>
+          <input class="sr-only" id="lecture-file" name="lecture_file" type="file" accept=".txt,text/plain">
+        </div>
+      </div>
+
+      <div class="form-footer">
+        <p>Gemini 3.6 Flash is used first, with Gemini 3.8 Flash as automatic fallback.</p>
+        <button class="button button-primary" type="submit">Generate quiz</button>
+      </div>
+    </form>
+  </section>
+{% endblock %}

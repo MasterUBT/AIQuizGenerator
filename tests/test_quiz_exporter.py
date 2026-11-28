@@ -4,7 +4,7 @@ import pytest
 
 from ai_quiz_generator.domain.quiz import Quiz
 from ai_quiz_generator.domain.quiz_result import QuizResult
-from ai_quiz_generator.infrastructure.quiz_exporter import QuizExportError, QuizExporter
+from ai_quiz_generator.infrastructure.quiz_exporter import QuizExporter, QuizExportError
 from ai_quiz_generator.services.quiz_session import QuizSession
 
 

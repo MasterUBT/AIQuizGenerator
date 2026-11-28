@@ -9,7 +9,7 @@ from ai_quiz_generator.infrastructure.input_reader import (
     LectureInputError,
     read_lecture_file,
 )
-from ai_quiz_generator.infrastructure.quiz_exporter import QuizExportError, QuizExporter
+from ai_quiz_generator.infrastructure.quiz_exporter import QuizExporter, QuizExportError
 from ai_quiz_generator.services.quiz_generator import (
     InvalidGenerationRequestError,
     QuizGenerationError,

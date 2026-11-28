@@ -15,9 +15,9 @@ from ai_quiz_generator.ai.provider import (
     AIProviderResponseError,
 )
 
-
-DEFAULT_MODEL = "gemini-3.8-flash"
-DEFAULT_TIMEOUT_SECONDS = 120.0
+DEFAULT_MODEL = "gemini-3.6-flash"
+DEFAULT_FALLBACK_MODEL = "gemini-3.8-flash"
+DEFAULT_TIMEOUT_SECONDS = 20.0
 
 
 QUIZ_RESPONSE_SCHEMA: dict[str, Any] = {
@@ -88,7 +88,11 @@ class GeminiProvider:
     ) -> None:
         if not isinstance(model, str) or not model.strip():
             raise AIProviderConfigurationError("Gemini model must be a nonempty string")
-        if isinstance(timeout, bool) or not isinstance(timeout, (int, float)) or timeout <= 0:
+        if (
+            isinstance(timeout, bool)
+            or not isinstance(timeout, (int, float))
+            or timeout <= 0
+        ):
             raise AIProviderConfigurationError("Gemini timeout must be positive")
 
         self._client = client if client is not None else self._create_client()
@@ -141,22 +145,35 @@ class GeminiProvider:
             401: "Gemini rejected the API key. Check GEMINI_API_KEY in .env or your environment.",
             403: "Gemini denied access. Check the key's project permissions and API restrictions.",
             404: "The Gemini model was not found. Check GEMINI_MODEL or --model.",
+            408: "Gemini request timed out. Please try again later.",
             429: "Gemini quota or rate limit reached. Check usage in Google AI Studio or try later.",
         }
         if status in messages:
-            return AIProviderRequestError(messages[status])
+            return AIProviderRequestError(
+                messages[status],
+                retryable=status in {408, 429},
+                status_code=status,
+            )
         if isinstance(status, int) and status >= 500:
-            return AIProviderRequestError("Gemini is temporarily unavailable. Try again later.")
+            return AIProviderRequestError(
+                "Gemini is temporarily unavailable. Try again later.",
+                retryable=True,
+                status_code=status,
+            )
 
         cause: BaseException | None = error
         seen = set()
         while cause is not None and id(cause) not in seen:
             seen.add(id(cause))
             if isinstance(cause, (TimeoutError, httpx.TimeoutException)):
-                return AIProviderRequestError("Gemini request timed out. Please try again later.")
+                return AIProviderRequestError(
+                    "Gemini request timed out. Please try again later.",
+                    retryable=True,
+                )
             if isinstance(cause, (ConnectionError, httpx.ConnectError)):
                 return AIProviderRequestError(
-                    "Could not connect to Gemini. Check your internet connection."
+                    "Could not connect to Gemini. Check your internet connection.",
+                    retryable=True,
                 )
             cause = cause.__cause__ or cause.__context__
         return AIProviderRequestError("Gemini could not generate the quiz.")
@@ -192,4 +209,3 @@ class GeminiProvider:
                 f"distractors, and concise explanations.\n\nLecture:\n{source}"
             )
         raise ValueError("mode must be 'topic' or 'lecture'")
-

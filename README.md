@@ -1,6 +1,61 @@
 # AI Quiz Generator
 
-This repository is the shared starting point for a terminal-based AI quiz generator. The first version is a Python layered modular monolith: Gemini creates quizzes, reusable application services run and grade them, and a terminal interface handles user interaction.
+This repository contains a Python AI quiz generator with terminal and local browser interfaces. Gemini creates quizzes, while reusable application services run and grade them.
+
+## Run the application
+
+Install dependencies once:
+
+```bash
+make setup
+```
+
+Copy `.env.example` to `.env`, add `GEMINI_API_KEY`, and start live generation:
+
+```bash
+make run
+```
+
+Live mode uses `gemini-3.6-flash` first and automatically tries
+`gemini-3.8-flash` after a timeout, rate limit, temporary server failure, or
+invalid model response. Each model has a 20-second request deadline by default.
+Configure the behavior with `GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL`, and
+`GEMINI_TIMEOUT_SECONDS`, or the equivalent `--model`, `--fallback-model`, and
+`--timeout` command-line options.
+
+Run the deterministic offline fixture explicitly with:
+
+```bash
+make practice
+```
+
+## Run the browser interface
+
+After completing `make setup` and adding `GEMINI_API_KEY` to `.env`, start the
+local web server:
+
+```bash
+make web
+```
+
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in your browser. You can
+generate a quiz from a topic, pasted lecture, or UTF-8 `.txt` file. Submit all
+10 answers to see the score and explanations, then download the incorrect
+answers as a Markdown review file. The API key remains on the Python server and
+is never sent to the browser.
+
+Press `Control+C` in the terminal to stop the server. Run only the browser tests
+with:
+
+```bash
+make test-web
+```
+
+Run all automated tests with:
+
+```bash
+make test
+```
 
 ## Team work plans
 
@@ -51,7 +106,7 @@ AIQuizGenerator/
     └── flutura/README.md
 ```
 
-The package directories and target modules are scaffolded now. Implementation and tests are intentionally left to the owners named above.
+The package directories were originally scaffolded around these ownership boundaries. The implementation and automated tests are now present; the team work plans remain as the historical task breakdown.
 
 ## Fixed architecture
 
@@ -60,9 +115,9 @@ The package directories and target modules are scaffolded now. Implementation an
 | Domain | `Question`, `Quiz`, `QuizResult` | No terminal, Gemini, or file-I/O imports |
 | Application | Quiz generation, session state, scoring | Uses domain objects and the `AIProvider` abstraction; no `print()` or `input()` |
 | Infrastructure | Gemini API, text-file input, result export | Implements external-provider and file operations |
-| Presentation | Terminal UI and application assembly | Calls services; owns `print()` and `input()`; contains no prompts or scoring rules |
+| Presentation | Terminal and local browser UI, plus application assembly | Calls services; contains no AI prompts or scoring rules |
 
-Use the Strategy pattern for `AIProvider`, constructor injection for `QuizGenerator`, and composition for quizzes and sessions. Do not add FastAPI, a web UI, a database, user accounts, analytics, or model training to the first version.
+Use the Strategy pattern for `AIProvider`, constructor injection for `QuizGenerator`, and composition for quizzes and sessions. The browser UI is a thin Flask presentation layer and does not add a database, user accounts, analytics, or model training.
 
 ## Shared contracts
 

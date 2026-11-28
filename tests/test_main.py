@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
-from typing import Any
+from types import SimpleNamespace
+from typing import Any, Self
 
 import pytest
 
@@ -67,35 +68,39 @@ def test_main_accepts_custom_fixture(
     sample_payload["topic"] = "Custom quiz"
     path = tmp_path / "quiz.json"
     path.write_text(json.dumps(sample_payload), encoding="utf-8")
-    responses = iter(["1", "Anything",
-                      *[q["correct_answer"] for q in sample_payload["questions"]],
-                      "n", "4"])
+    responses = iter(
+        [
+            "1",
+            "Anything",
+            *[q["correct_answer"] for q in sample_payload["questions"]],
+            "n",
+            "4",
+        ]
+    )
     monkeypatch.setattr("builtins.input", lambda prompt: next(responses))
 
     assert main(["--fixture", str(path)]) == 0
 
     assert "Quiz: Custom quiz" in capsys.readouterr().out
 
+
 class FakeGeminiClient:
     """Exercise the real provider, parser, UI, and scoring without a network."""
 
     def __init__(self, payload: dict[str, Any]) -> None:
-        from types import SimpleNamespace
-
         self.payload = payload
         self.calls: list[dict[str, Any]] = []
         self.closed = False
+        self.http_options: object = None
         self.interactions = SimpleNamespace(create=self.create)
 
-    def __enter__(self) -> "FakeGeminiClient":
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *args: object) -> None:
         self.closed = True
 
     def create(self, **kwargs: Any) -> object:
-        from types import SimpleNamespace
-
         self.calls.append(kwargs)
         return SimpleNamespace(output_text=json.dumps(self.payload))
 
@@ -106,7 +111,13 @@ def isolate_local_configuration(
 ) -> Path:
     env_file = tmp_path / ".env"
     monkeypatch.setattr("ai_quiz_generator.main.ENV_FILE", env_file)
-    for name in ["GEMINI_API_KEY", "GOOGLE_API_KEY", "GEMINI_MODEL"]:
+    for name in [
+        "GEMINI_API_KEY",
+        "GOOGLE_API_KEY",
+        "GEMINI_MODEL",
+        "GEMINI_FALLBACK_MODEL",
+        "GEMINI_TIMEOUT_SECONDS",
+    ]:
         monkeypatch.delenv(name, raising=False)
     return env_file
 
@@ -119,8 +130,9 @@ def fake_gemini(
     client = FakeGeminiClient(sample_payload)
     keys: list[str] = []
 
-    def create_client(*, api_key: str) -> FakeGeminiClient:
+    def create_client(*, api_key: str, http_options: object) -> FakeGeminiClient:
         keys.append(api_key)
+        client.http_options = http_options
         return client
 
     monkeypatch.setattr("ai_quiz_generator.main.genai.Client", create_client)
@@ -154,7 +166,9 @@ def test_live_assembly_uses_user_input_and_exports_generated_quiz(
     destination = tmp_path / "review.md"
     choices = [q["correct_answer"] for q in sample_payload["questions"]]
     choices[0] = "B" if choices[0] == "A" else "A"
-    responses = iter(["0", *prefix, "invalid-answer", *choices, "y", str(destination), "4"])
+    responses = iter(
+        ["0", *prefix, "invalid-answer", *choices, "y", str(destination), "4"]
+    )
     monkeypatch.setattr("builtins.input", lambda prompt: next(responses))
 
     assert main([]) == 0
@@ -162,6 +176,7 @@ def test_live_assembly_uses_user_input_and_exports_generated_quiz(
     client, keys = fake_gemini
     output = capsys.readouterr().out
     assert keys == ["file-test-key"]
+    assert client.http_options.retry_options.attempts == 1
     assert len(client.calls) == 1
     assert client.calls[0]["model"] == "test-model"
     assert source in client.calls[0]["input"]
@@ -235,9 +250,15 @@ def test_model_configuration_precedence(
     )
     if shell_model is not None:
         monkeypatch.setenv("GEMINI_MODEL", shell_model)
-    responses = iter(["1", "Topic",
-                      *[q["correct_answer"] for q in sample_payload["questions"]],
-                      "n", "4"])
+    responses = iter(
+        [
+            "1",
+            "Topic",
+            *[q["correct_answer"] for q in sample_payload["questions"]],
+            "n",
+            "4",
+        ]
+    )
     monkeypatch.setattr("builtins.input", lambda prompt: next(responses))
 
     assert main(arguments) == 0
@@ -260,7 +281,9 @@ def test_client_configuration_errors_do_not_expose_secrets(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    isolate_local_configuration.write_text("GEMINI_API_KEY=test-secret\n", encoding="utf-8")
+    isolate_local_configuration.write_text(
+        "GEMINI_API_KEY=test-secret\n", encoding="utf-8"
+    )
 
     def broken_client(**kwargs: object) -> None:
         raise RuntimeError("sensitive detail: test-secret")
@@ -293,7 +316,9 @@ def test_live_generation_failure_returns_to_menu_and_closes_client(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    isolate_local_configuration.write_text("GEMINI_API_KEY=test-key\n", encoding="utf-8")
+    isolate_local_configuration.write_text(
+        "GEMINI_API_KEY=test-key\n", encoding="utf-8"
+    )
 
     def failure(**kwargs: Any) -> object:
         raise TimeoutError("sensitive remote detail")
@@ -312,13 +337,79 @@ def test_live_generation_failure_returns_to_menu_and_closes_client(
     assert "Practice mode:" not in output
     assert client.closed
 
+
+def test_retryable_primary_failure_uses_fallback_model(
+    sample_payload: dict[str, Any],
+    isolate_local_configuration: Path,
+    fake_gemini: tuple[FakeGeminiClient, list[str]],
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    isolate_local_configuration.write_text(
+        "GEMINI_API_KEY=test-key\n"
+        "GEMINI_MODEL=primary-model\n"
+        "GEMINI_FALLBACK_MODEL=fallback-model\n"
+        "GEMINI_TIMEOUT_SECONDS=5\n",
+        encoding="utf-8",
+    )
+    client = fake_gemini[0]
+
+    def primary_times_out(**kwargs: Any) -> object:
+        client.calls.append(kwargs)
+        if kwargs["model"] == "primary-model":
+            raise TimeoutError("private remote detail")
+        return SimpleNamespace(output_text=json.dumps(client.payload))
+
+    client.interactions.create = primary_times_out
+    responses = iter(
+        [
+            "1",
+            "Python",
+            *[q["correct_answer"] for q in sample_payload["questions"]],
+            "n",
+            "4",
+        ]
+    )
+    monkeypatch.setattr("builtins.input", lambda prompt: next(responses))
+
+    assert main([]) == 0
+
+    assert [call["model"] for call in client.calls] == [
+        "primary-model",
+        "fallback-model",
+    ]
+    assert all(call["timeout"] == 5.0 for call in client.calls)
+    output = capsys.readouterr().out
+    assert "primary-model failed: Gemini request timed out." in output
+    assert "Trying fallback-model" in output
+    assert "Final score: 10/10 (100%)" in output
+    assert "private remote detail" not in output
+
+
+@pytest.mark.parametrize("timeout", ["zero", "0", "-1"])
+def test_invalid_timeout_configuration_is_rejected(
+    timeout: str,
+    isolate_local_configuration: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    isolate_local_configuration.write_text(
+        f"GEMINI_API_KEY=test-key\nGEMINI_TIMEOUT_SECONDS={timeout}\n",
+        encoding="utf-8",
+    )
+
+    assert main([]) == 1
+    assert "GEMINI_TIMEOUT_SECONDS must be a positive number" in capsys.readouterr().out
+
+
 def test_rejected_key_is_explained_in_terminal_without_leaking_sdk_details(
     isolate_local_configuration: Path,
     fake_gemini: tuple[FakeGeminiClient, list[str]],
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    isolate_local_configuration.write_text("GEMINI_API_KEY=test-key\n", encoding="utf-8")
+    isolate_local_configuration.write_text(
+        "GEMINI_API_KEY=test-key\n", encoding="utf-8"
+    )
 
     class RejectedKeyError(Exception):
         status_code = 401

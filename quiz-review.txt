@@ -1,0 +1,84 @@
+# Quiz review: Python Programming Language
+
+Score: 1/10
+
+## Question 1
+
+What is the correct syntax to output 'Hello World' in Python?
+
+**Your answer:** A — echo('Hello World')
+**Correct answer:** B — print('Hello World')
+
+**Explanation:** In Python, the built-in print() function is used to output text to the console.
+
+## Question 2
+
+Which of the following is an immutable data type in Python?
+
+**Your answer:** A — List
+**Correct answer:** C — Tuple
+
+**Explanation:** Tuples are immutable, meaning their elements cannot be changed or reassigned after creation.
+
+## Question 3
+
+How do you create a variable with the floating number 2.8 in Python?
+
+**Your answer:** A — x = float(2.8)
+**Correct answer:** C — Both A and B are correct
+
+**Explanation:** Assigning 2.8 directly creates a float, and float(2.8) explicitly converts/returns it as a float.
+
+## Question 4
+
+Which keyword is used to define a function in Python?
+
+**Your answer:** A — func
+**Correct answer:** C — def
+
+**Explanation:** The 'def' keyword is used to declare and define user-defined functions in Python.
+
+## Question 5
+
+What will `type([])` return in Python?
+
+**Your answer:** A — <class 'tuple'>
+**Correct answer:** C — <class 'list'>
+
+**Explanation:** Square brackets `[]` are used to define a list in Python, so its type is `list`.
+
+## Question 6
+
+Which operator is used for exponentiation (power) in Python?
+
+**Your answer:** A — ^
+**Correct answer:** B — **
+
+**Explanation:** The `**` operator raises the left operand to the power of the right operand.
+
+## Question 7
+
+What is the output of `bool('')` in Python?
+
+**Your answer:** A — True
+**Correct answer:** B — False
+
+**Explanation:** An empty string is considered 'falsy' in Python, evaluating to False when cast to a boolean.
+
+## Question 8
+
+Which method can be used to remove whitespace from both the beginning and end of a string?
+
+**Your answer:** A — trim()
+**Correct answer:** C — strip()
+
+**Explanation:** The `strip()` method removes leading and trailing whitespace characters from a string.
+
+## Question 10
+
+Which module in Python is used for generating pseudo-random numbers?
+
+**Your answer:** A — math
+**Correct answer:** B — random
+
+**Explanation:** The standard library module `random` provides functions for generating random numbers.

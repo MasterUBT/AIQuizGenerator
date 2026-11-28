@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Your result · AI Quiz Generator{% endblock %}
+
+{% block content %}
+  <section class="result-hero">
+    <div class="score-ring" style="--score: {{ percentage|round|int }}">
+      <strong>{{ percentage|round|int }}%</strong>
+      <span>{{ result.score }}/{{ result.total }}</span>
+    </div>
+    <div>
+      <span class="eyebrow">Quiz complete</span>
+      <h1>{% if percentage >= 80 %}Excellent work.{% elif percentage >= 60 %}Good progress.{% else %}Keep building on it.{% endif %}</h1>
+      <p>You completed <strong>{{ quiz.topic }}</strong>. Review each answer below or download a focused report of your mistakes.</p>
+      <div class="result-actions">
+        <a class="button button-primary" href="{{ url_for('download_review', token=token) }}">Download review</a>
+        <a class="button button-secondary" href="{{ url_for('index') }}">Create another quiz</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="review-section" aria-labelledby="review-title">
+    <div class="section-heading">
+      <div>
+        <span class="card-kicker">Answer review</span>
+        <h2 id="review-title">Understand every result</h2>
+      </div>
+      <span class="review-summary">{{ result.wrong_question_ids|length }} incorrect</span>
+    </div>
+
+    <div class="review-list">
+      {% for question in quiz.questions %}
+        {% set selected = result.answers[question.id] %}
+        {% set is_wrong = question.id in wrong_ids %}
+        <article class="review-card {% if is_wrong %}review-wrong{% else %}review-correct{% endif %}">
+          <div class="review-status">
+            <span>{% if is_wrong %}Needs review{% else %}Correct{% endif %}</span>
+            <small>Question {{ loop.index }}</small>
+          </div>
+          <h3>{{ question.text }}</h3>
+          <div class="review-answers">
+            <p><strong>Your answer</strong><span>{{ selected }} · {{ question.options[selected] }}</span></p>
+            {% if is_wrong %}
+              <p><strong>Correct answer</strong><span>{{ question.correct_answer }} · {{ question.options[question.correct_answer] }}</span></p>
+            {% endif %}
+          </div>
+          <div class="explanation"><strong>Why</strong><p>{{ question.explanation }}</p></div>
+        </article>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}
